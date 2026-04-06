@@ -313,7 +313,8 @@ function editCollaborator(id) {
   if (!collab) return;
   parentState.editingCollabId = id;
   collabName.value = collab.name;
-  collabLink.value = `${location.origin}/colaborador.html?id=${collab.id}`;
+  const basePath = window.location.pathname.includes('ApoyoConBebes') ? '/ApoyoConBebes' : '';
+  collabLink.value = `${location.origin}${basePath}/colaborador.html?id=${collab.id}`;
   buildOptions(collabActivities, Object.values(parentState.activities).map(a => ({ id:a.id, label:a.name })), collab.activityIds || []);
   buildOptions(collabAvailability, ['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'].map((value,index)=>({id:String(index),label:value})), collab.availability||[]);
   collabNotes.value = collab.notes || '';
@@ -349,7 +350,8 @@ function renderUI() {
 }
 function renderLinkForCollabForm() {
   if (!parentState.editingCollabId) return;
-  collabLink.value = `${location.origin}/colaborador.html?id=${parentState.editingCollabId}`;
+  const basePath = window.location.pathname.includes('ApoyoConBebes') ? '/ApoyoConBebes' : '';
+  collabLink.value = `${location.origin}${basePath}/colaborador.html?id=${parentState.editingCollabId}`;
 }
 function handleLogin(event) {
   event.preventDefault();
