@@ -8,27 +8,54 @@
   <link rel="stylesheet" href="app.css" />
 </head>
 <body>
-  <div class="page-shell">
-    <div id="errorPanel" class="error-panel hidden"></div>
-    <header class="page-header" style="margin-bottom: 28px;">
-      <div>
-        <h1 id="collabTitle" style="margin-bottom: 6px;">👋 Bienvenido</h1>
-        <p id="collabSubtitle" class="note">Tus bloques disponibles y turnos confirmados.</p>
-      </div>
+  <div class="app-container">
+    <header class="app-header">
+      <h1 class="app-title" id="collabTitle">Bienvenido</h1>
     </header>
-    <div class="tabs" style="margin-bottom: 24px;">
-      <button class="tab-button active" id="tabAvailableBtn">📋 Disponible <span class="badge" id="badgeAvailable">0</span></button>
-      <button class="tab-button" id="tabMyTurnsBtn">✅ Mis turnos <span class="badge" id="badgeMyTurns">0</span></button>
-      <button class="tab-button" id="tabNotificationsBtn">🔔 Notificaciones <span class="badge" id="badgeNotifications">0</span></button>
+    <div class="app-content" style="grid-template-columns: auto 1fr;">
+      <!-- TABS -->
+      <aside class="sidebar">
+        <nav class="nav-sections" style="grid-auto-flow: row;">
+          <button class="nav-link active" data-section="available">Disponible</button>
+          <button class="nav-link" data-section="myturns">Mis turnos</button>
+          <button class="nav-link" data-section="notifications">Notificaciones</button>
+        </nav>
+      </aside>
+
+      <!-- CONTENT -->
+      <main class="main-content">
+        <!-- DISPONIBLE -->
+        <section id="available" class="section active">
+          <div class="section-header">
+            <h2 class="section-title">Bloques disponibles</h2>
+            <p class="section-description" id="collabSubtitle">Selecciona los turnos en los que puedas ayudar</p>
+          </div>
+          <div id="availableBlocks"></div>
+        </section>
+
+        <!-- MIS TURNOS -->
+        <section id="myturns" class="section">
+          <div class="section-header">
+            <h2 class="section-title">Mis turnos</h2>
+            <p class="section-description">Bloques en los que te apuntaste</p>
+          </div>
+          <div id="myTurnsBlocks"></div>
+        </section>
+
+        <!-- NOTIFICACIONES -->
+        <section id="notifications" class="section">
+          <div class="section-header">
+            <h2 class="section-title">Notificaciones</h2>
+            <p class="section-description">Respuestas de los papás</p>
+          </div>
+          <div id="notificationsList"></div>
+        </section>
+      </main>
     </div>
-    <div class="chip-bar" id="collabChips"></div>
-    <main>
-      <section class="card" id="availableSection"></section>
-      <section class="card hidden" id="myTurnsSection"></section>
-      <section class="card hidden" id="notificationsSection"></section>
-    </main>
   </div>
+
   <div id="detailModal" class="hidden"></div>
+
   <script src="firebase.js"></script>
   <script src="colaborador.js"></script>
   <script>

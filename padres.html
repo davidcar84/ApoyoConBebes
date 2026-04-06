@@ -3,149 +3,162 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>ApoyoConBebes - Papás</title>
+  <title>ApoyoConBebes - Padres</title>
   <link rel="manifest" href="manifest.json" />
   <link rel="stylesheet" href="app.css" />
 </head>
 <body>
-  <div class="page-shell">
-    <div id="loginScreen" class="centered-page">
-      <div class="landing-card">
-        <h1>👨‍👩‍👧‍👦 ApoyoConBebes</h1>
-        <p style="color: var(--text-secondary); font-size: 1.05rem;">Coordina el apoyo de tu red familiar para los primeros días con los gemelos.</p>
-        <form id="loginForm" style="margin-top: 28px;">
-          <div>
-            <label for="pinInput">Código de acceso</label>
-            <input type="password" id="pinInput" placeholder="••••" maxlength="6" required style="text-align: center; font-size: 1.1rem; letter-spacing: 3px;" />
-          </div>
-          <button class="button primary" type="submit" style="width: 100%;">Acceder</button>
-          <p id="loginError" class="error-panel" style="display:none; margin-top: 12px;">Código incorrecto. Intenta de nuevo.</p>
-        </form>
-      </div>
-    </div>
-    <div id="adminApp" class="hidden">
-      <header class="page-header" style="margin-bottom: 32px;">
-        <div>
-          <h1 style="margin-bottom: 6px;">👨‍👩‍👧‍👦 ApoyoConBebes</h1>
-          <p class="note">Gestiona la agenda, colaboradores, actividades y notificaciones.</p>
+  <!-- LOGIN -->
+  <div id="loginScreen" class="login-container">
+    <div class="login-card">
+      <h1>ApoyoConBebes</h1>
+      <p>Ingresa tu código de acceso</p>
+      <form id="loginForm">
+        <div class="form-group">
+          <label for="pinInput">Código</label>
+          <input type="password" id="pinInput" placeholder="••••" maxlength="6" required />
+          <div id="loginError" class="error" style="display:none;">Código incorrecto</div>
         </div>
-        <div class="top-bar">
-          <button class="button secondary" id="copyWeekBtn" style="gap: 8px;">📋 Copiar anterior</button>
-          <button class="button primary" id="newBlockBtn" style="gap: 8px;">➕ Crear bloque</button>
-        </div>
-      </header>
-      <div class="page-grid">
-        <!-- SIDEBAR -->
-        <aside class="card">
-          <div class="sidebar-section">
-            <h3>📊 Resumen</h3>
-            <div class="chip-bar" id="stateChips"></div>
-          </div>
-          <div class="sidebar-section">
-            <h3>📅 Semana</h3>
-            <div class="chip" id="weekLabel" style="width: 100%; justify-content: center; padding: 14px;"></div>
-            <div class="field-grid" style="margin-top: 12px;">
-              <button class="button secondary" id="prevWeekBtn">← Ant.</button>
-              <button class="button secondary" id="nextWeekBtn">Sig. →</button>
-            </div>
-          </div>
-          <div class="sidebar-section">
-            <h3>🔔 Notificaciones</h3>
-            <div id="parentNotifications" style="max-height: 400px; overflow-y: auto;"></div>
-          </div>
-        </aside>
-        <!-- MAIN CONTENT -->
-        <main>
-          <!-- AGENDA SEMANAL -->
-          <section class="card" id="agendaSection" style="margin-bottom: 24px;">
-            <div class="section-title">
-              <h2>📅 Agenda semanal</h2>
-              <span class="badge-pill" id="blockCountBadge">0 bloques</span>
-            </div>
-            <div id="blocksContainer"></div>
-          </section>
-          <!-- COLABORADORES -->
-          <section class="card" id="collaboratorsSection" style="margin-bottom: 24px;">
-            <div class="section-title">
-              <h2>👥 Colaboradores</h2>
-            </div>
-            <div id="collaboratorList" style="margin-bottom: 24px;"></div>
-            <form id="collaboratorForm">
-              <h3 style="margin-top: 0; margin-bottom: 16px;">Agregar o editar colaborador</h3>
-              <div class="field-grid">
-                <div>
-                  <label>Nombre completo</label>
-                  <input id="collabName" placeholder="Ej: María López" required />
-                </div>
-                <div>
-                  <label>Link de acceso</label>
-                  <input id="collabLink" readonly style="background: var(--surface-hover);" />
-                </div>
-              </div>
-              <div>
-                <label>📝 Actividades que puede realizar</label>
-                <div id="collabActivities" class="checkbox-group"></div>
-              </div>
-              <div>
-                <label>📍 Disponibilidad</label>
-                <div id="collabAvailability" class="checkbox-group"></div>
-              </div>
-              <div>
-                <label>Notas adicionales</label>
-                <textarea id="collabNotes" placeholder="Ej: Disponible solo después de las 2pm"></textarea>
-              </div>
-              <div class="card-footer">
-                <button class="button primary" type="submit" style="flex: 1;">💾 Guardar</button>
-                <button class="button secondary" id="collabResetBtn" type="button">🔄 Nuevo</button>
-              </div>
-            </form>
-          </section>
-          <!-- ACTIVIDADES -->
-          <section class="card" id="activitiesSection">
-            <div class="section-title">
-              <h2>✅ Actividades</h2>
-            </div>
-            <div id="activityList" style="margin-bottom: 24px;"></div>
-            <form id="activityForm">
-              <h3 style="margin-top: 0; margin-bottom: 16px;">Agregar o editar actividad</h3>
-              <div class="field-grid">
-                <div>
-                  <label>Nombre</label>
-                  <input id="activityName" placeholder="Ej: Cambiar pañales" required />
-                </div>
-                <div>
-                  <label>Categoría</label>
-                  <select id="activityCategory" required></select>
-                </div>
-              </div>
-              <div class="field-grid">
-                <div>
-                  <label>Personas necesarias</label>
-                  <select id="activityPeople" required>
-                    <option value="1">1 persona</option>
-                    <option value="2">2 personas</option>
-                    <option value="3">3 personas</option>
-                  </select>
-                </div>
-                <div style="display: flex; align-items: flex-end;">
-                  <label class="checkbox-pill" style="border: 2px solid var(--border); width: 100%; justify-content: center;"><input type="checkbox" id="activityExperience" /> Requiere experiencia</label>
-                </div>
-              </div>
-              <div>
-                <label>📖 Instrucciones detalladas</label>
-                <textarea id="activityInstructions" placeholder="Explica cómo realizar esta actividad paso a paso..."></textarea>
-              </div>
-              <div class="card-footer">
-                <button class="button primary" type="submit" style="flex: 1;">💾 Guardar</button>
-                <button class="button secondary" id="activityResetBtn" type="button">🔄 Nuevo</button>
-              </div>
-            </form>
-          </section>
-        </main>
-      </div>
+        <button type="submit" class="btn-primary" style="width: 100%;">Entrar</button>
+      </form>
     </div>
   </div>
+
+  <!-- APP -->
+  <div id="adminApp" class="app-container hidden">
+    <header class="app-header">
+      <h1 class="app-title">Panel de Papás - ApoyoConBebes</h1>
+    </header>
+    <div class="app-content">
+      <!-- SIDEBAR -->
+      <aside class="sidebar">
+        <nav class="nav-sections">
+          <button class="nav-link active" data-section="agenda">Agenda</button>
+          <button class="nav-link" data-section="collaborators">Colaboradores</button>
+          <button class="nav-link" data-section="activities">Actividades</button>
+          <button class="nav-link" data-section="notifications">Notificaciones</button>
+        </nav>
+      </aside>
+
+      <!-- MAIN -->
+      <main class="main-content">
+        <!-- AGENDA -->
+        <section id="agenda" class="section active">
+          <div class="section-header">
+            <h2 class="section-title">Agenda semanal</h2>
+            <p class="section-description">Gestiona los bloques de ayuda</p>
+          </div>
+          
+          <div class="form-group">
+            <label>Semana</label>
+            <div style="display: flex; gap: 8px;">
+              <button id="prevWeek" class="btn-secondary btn-small">Anterior</button>
+              <input type="text" id="weekDisplay" readonly style="flex: 1; background: var(--surface-hover);" />
+              <button id="nextWeek" class="btn-secondary btn-small">Siguiente</button>
+            </div>
+          </div>
+
+          <div class="button-group" style="margin-bottom: 20px;">
+            <button id="newBlockBtn" class="btn-primary">Crear bloque</button>
+            <button id="copyWeekBtn" class="btn-secondary">Copiar anterior</button>
+          </div>
+
+          <div id="blocksContainer"></div>
+        </section>
+
+        <!-- COLABORADORES -->
+        <section id="collaborators" class="section">
+          <div class="section-header">
+            <h2 class="section-title">Colaboradores</h2>
+            <p class="section-description">Gestiona la red de apoyo familiar</p>
+          </div>
+
+          <div id="collabList"></div>
+
+          <div style="background: var(--surface-hover); padding: 16px; border-radius: 10px;">
+            <h3 style="margin-top: 0; margin-bottom: 16px; font-size: 1rem; color: var(--text);">Agregar colaborador</h3>
+            <form id="collaboratorForm">
+              <div class="form-row">
+                <input type="text" id="collabName" placeholder="Nombre completo" required />
+              </div>
+              <div class="form-row">
+                <input type="text" id="collabLink" readonly placeholder="Link personal" style="background: white;" />
+              </div>
+              <div class="form-group">
+                <label style="margin-bottom: 10px;">Actividades que puede realizar</label>
+                <div id="collabActivities" class="checkbox-group"></div>
+              </div>
+              <div class="form-group">
+                <label style="margin-bottom: 10px;">Disponibilidad</label>
+                <div id="collabAvailability" class="checkbox-group"></div>
+              </div>
+              <div class="form-group">
+                <label>Notas</label>
+                <textarea id="collabNotes" placeholder="Información adicional..."></textarea>
+              </div>
+              <div class="button-group">
+                <button type="submit" class="btn-primary">Guardar</button>
+                <button type="button" id="collabReset" class="btn-secondary">Limpiar</button>
+              </div>
+            </form>
+          </div>
+        </section>
+
+        <!-- ACTIVIDADES -->
+        <section id="activities" class="section">
+          <div class="section-header">
+            <h2 class="section-title">Actividades</h2>
+            <p class="section-description">Define las tareas necesarias</p>
+          </div>
+
+          <div id="activityList"></div>
+
+          <div style="background: var(--surface-hover); padding: 16px; border-radius: 10px;">
+            <h3 style="margin-top: 0; margin-bottom: 16px; font-size: 1rem; color: var(--text);">Agregar actividad</h3>
+            <form id="activityForm">
+              <div class="form-row">
+                <input type="text" id="activityName" placeholder="Nombre de la actividad" required />
+                <select id="activityCategory" required></select>
+              </div>
+              <div class="form-row">
+                <select id="activityPeople" required>
+                  <option value="">Personas requeridas</option>
+                  <option value="1">1 persona</option>
+                  <option value="2">2 personas</option>
+                  <option value="3">3 personas</option>
+                </select>
+                <label style="display: flex; align-items: center; margin-bottom: 0; gap: 8px;">
+                  <input type="checkbox" id="activityExperience" />
+                  <span>Requiere experiencia</span>
+                </label>
+              </div>
+              <div class="form-group">
+                <label>Instrucciones</label>
+                <textarea id="activityInstructions" placeholder="Pasos detallados..."></textarea>
+              </div>
+              <div class="button-group">
+                <button type="submit" class="btn-primary">Guardar</button>
+                <button type="button" id="activityReset" class="btn-secondary">Limpiar</button>
+              </div>
+            </form>
+          </div>
+        </section>
+
+        <!-- NOTIFICACIONES -->
+        <section id="notifications" class="section">
+          <div class="section-header">
+            <h2 class="section-title">Notificaciones</h2>
+            <p class="section-description">Actividad de colaboradores</p>
+          </div>
+          <div id="parentNotifications" style="max-height: 600px; overflow-y: auto;"></div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <!-- MODAL -->
   <div id="modalOverlay" class="hidden"></div>
+
   <script src="firebase.js"></script>
   <script src="padres.js"></script>
   <script>
