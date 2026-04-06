@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ApoyoConBebes</title>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="stylesheet" href="app.css" />
+  <meta name="theme-color" content="#2563eb" />
+  <link rel="apple-touch-icon" href="icons/icon-192.svg" />
+</head>
+<body>
+  <div class="landing">
+    <div class="landing-card">
+      <h1>ApoyoConBebes</h1>
+      <p>Coordinación de turnos de apoyo para los primeros días con los bebés.</p>
+      <div class="landing-btns">
+        <a href="padres.html" class="btn-primary">Acceder como Papás</a>
+        <a href="colaborador.html" class="btn-secondary">Soy colaborador</a>
+      </div>
+      <p class="landing-note">Los colaboradores acceden con su link personal <code>?id=CODIGO</code>.</p>
+    </div>
+  </div>
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('service-worker.js').catch(() => {});
+    }
+  </script>
+</body>
+</html>

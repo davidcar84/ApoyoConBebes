@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192">
+  <rect width="192" height="192" rx="42" fill="#2563eb"/>
+  <!-- Baby face -->
+  <circle cx="96" cy="82" r="42" fill="#fff" opacity=".95"/>
+  <circle cx="82" cy="76" r="6" fill="#2563eb"/>
+  <circle cx="110" cy="76" r="6" fill="#2563eb"/>
+  <path d="M82 94 Q96 108 110 94" stroke="#2563eb" stroke-width="4" fill="none" stroke-linecap="round"/>
+  <!-- Heart -->
+  <path d="M80 140 Q80 130 96 140 Q112 130 112 140 Q112 152 96 162 Q80 152 80 140Z" fill="#fff" opacity=".9"/>
+</svg>
