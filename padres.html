@@ -9,45 +9,152 @@
 </head>
 <body>
   <div class="page-shell">
-    <div id="loginScreen" class="card">
-      <h1>Acceso Papás</h1>
-      <p>Introduce el PIN para acceder a la vista de padres.</p>
-      <form id="loginForm">
-        <label for="pinInput">PIN</label>
-        <input type="password" id="pinInput" placeholder="Código de acceso" required />
-        <button class="button primary" type="submit">Entrar</button>
-      </form>
-      <p id="loginError" class="note" style="color:#b91c1c; display:none;">PIN incorrecto.</p>
+    <div id="loginScreen" class="centered-page">
+      <div class="landing-card">
+        <h1>👨‍👩‍👧‍👦 ApoyoConBebes</h1>
+        <p style="color: var(--text-secondary); font-size: 1.05rem;">Coordina el apoyo de tu red familiar para los primeros días con los gemelos.</p>
+        <form id="loginForm" style="margin-top: 28px;">
+          <div>
+            <label for="pinInput">Código de acceso</label>
+            <input type="password" id="pinInput" placeholder="••••" maxlength="6" required style="text-align: center; font-size: 1.1rem; letter-spacing: 3px;" />
+          </div>
+          <button class="button primary" type="submit" style="width: 100%;">Acceder</button>
+          <p id="loginError" class="error-panel" style="display:none; margin-top: 12px;">Código incorrecto. Intenta de nuevo.</p>
+        </form>
+      </div>
     </div>
     <div id="adminApp" class="hidden">
-      <header class="page-header">
+      <header class="page-header" style="margin-bottom: 32px;">
         <div>
-          <h1>ApoyoConBebes</h1>
-          <p class="note">Vista de papás: agenda, colaboradores, actividades y notificaciones.</p>
+          <h1 style="margin-bottom: 6px;">👨‍👩‍👧‍👦 ApoyoConBebes</h1>
+          <p class="note">Gestiona la agenda, colaboradores, actividades y notificaciones.</p>
         </div>
         <div class="top-bar">
-          <button class="button secondary" id="copyWeekBtn">Copiar semana anterior</button>
-          <button class="button secondary" id="newBlockBtn">Crear bloque</button>
+          <button class="button secondary" id="copyWeekBtn" style="gap: 8px;">📋 Copiar anterior</button>
+          <button class="button primary" id="newBlockBtn" style="gap: 8px;">➕ Crear bloque</button>
         </div>
       </header>
       <div class="page-grid">
+        <!-- SIDEBAR -->
         <aside class="card">
-          <div class="section-title"><h2>Resumen</h2></div>
-          <div class="chip-bar" id="stateChips"></div>
-          <div class="section-title"><h2>Control</h2></div>
-          <div class="field-grid">
-            <div>
-              <label>Semana</label>
-              <div class="chip" id="weekLabel"></div>
+          <div class="sidebar-section">
+            <h3>📊 Resumen</h3>
+            <div class="chip-bar" id="stateChips"></div>
+          </div>
+          <div class="sidebar-section">
+            <h3>📅 Semana</h3>
+            <div class="chip" id="weekLabel" style="width: 100%; justify-content: center; padding: 14px;"></div>
+            <div class="field-grid" style="margin-top: 12px;">
+              <button class="button secondary" id="prevWeekBtn">← Ant.</button>
+              <button class="button secondary" id="nextWeekBtn">Sig. →</button>
             </div>
           </div>
-          <div class="field-grid">
-            <button class="button secondary" id="prevWeekBtn">Anterior</button>
-            <button class="button secondary" id="nextWeekBtn">Siguiente</button>
+          <div class="sidebar-section">
+            <h3>🔔 Notificaciones</h3>
+            <div id="parentNotifications" style="max-height: 400px; overflow-y: auto;"></div>
           </div>
-          <div class="section-title"><h2>Notificaciones</h2></div>
-          <div id="parentNotifications"></div>
         </aside>
+        <!-- MAIN CONTENT -->
+        <main>
+          <!-- AGENDA SEMANAL -->
+          <section class="card" id="agendaSection" style="margin-bottom: 24px;">
+            <div class="section-title">
+              <h2>📅 Agenda semanal</h2>
+              <span class="badge-pill" id="blockCountBadge">0 bloques</span>
+            </div>
+            <div id="blocksContainer"></div>
+          </section>
+          <!-- COLABORADORES -->
+          <section class="card" id="collaboratorsSection" style="margin-bottom: 24px;">
+            <div class="section-title">
+              <h2>👥 Colaboradores</h2>
+            </div>
+            <div id="collaboratorList" style="margin-bottom: 24px;"></div>
+            <form id="collaboratorForm">
+              <h3 style="margin-top: 0; margin-bottom: 16px;">Agregar o editar colaborador</h3>
+              <div class="field-grid">
+                <div>
+                  <label>Nombre completo</label>
+                  <input id="collabName" placeholder="Ej: María López" required />
+                </div>
+                <div>
+                  <label>Link de acceso</label>
+                  <input id="collabLink" readonly style="background: var(--surface-hover);" />
+                </div>
+              </div>
+              <div>
+                <label>📝 Actividades que puede realizar</label>
+                <div id="collabActivities" class="checkbox-group"></div>
+              </div>
+              <div>
+                <label>📍 Disponibilidad</label>
+                <div id="collabAvailability" class="checkbox-group"></div>
+              </div>
+              <div>
+                <label>Notas adicionales</label>
+                <textarea id="collabNotes" placeholder="Ej: Disponible solo después de las 2pm"></textarea>
+              </div>
+              <div class="card-footer">
+                <button class="button primary" type="submit" style="flex: 1;">💾 Guardar</button>
+                <button class="button secondary" id="collabResetBtn" type="button">🔄 Nuevo</button>
+              </div>
+            </form>
+          </section>
+          <!-- ACTIVIDADES -->
+          <section class="card" id="activitiesSection">
+            <div class="section-title">
+              <h2>✅ Actividades</h2>
+            </div>
+            <div id="activityList" style="margin-bottom: 24px;"></div>
+            <form id="activityForm">
+              <h3 style="margin-top: 0; margin-bottom: 16px;">Agregar o editar actividad</h3>
+              <div class="field-grid">
+                <div>
+                  <label>Nombre</label>
+                  <input id="activityName" placeholder="Ej: Cambiar pañales" required />
+                </div>
+                <div>
+                  <label>Categoría</label>
+                  <select id="activityCategory" required></select>
+                </div>
+              </div>
+              <div class="field-grid">
+                <div>
+                  <label>Personas necesarias</label>
+                  <select id="activityPeople" required>
+                    <option value="1">1 persona</option>
+                    <option value="2">2 personas</option>
+                    <option value="3">3 personas</option>
+                  </select>
+                </div>
+                <div style="display: flex; align-items: flex-end;">
+                  <label class="checkbox-pill" style="border: 2px solid var(--border); width: 100%; justify-content: center;"><input type="checkbox" id="activityExperience" /> Requiere experiencia</label>
+                </div>
+              </div>
+              <div>
+                <label>📖 Instrucciones detalladas</label>
+                <textarea id="activityInstructions" placeholder="Explica cómo realizar esta actividad paso a paso..."></textarea>
+              </div>
+              <div class="card-footer">
+                <button class="button primary" type="submit" style="flex: 1;">💾 Guardar</button>
+                <button class="button secondary" id="activityResetBtn" type="button">🔄 Nuevo</button>
+              </div>
+            </form>
+          </section>
+        </main>
+      </div>
+    </div>
+  </div>
+  <div id="modalOverlay" class="hidden"></div>
+  <script src="firebase.js"></script>
+  <script src="padres.js"></script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('service-worker.js').catch(() => {});
+    }
+  </script>
+</body>
+</html>
         <main>
           <section class="card" id="agendaSection">
             <div class="section-title"><h2>Agenda semanal</h2></div>

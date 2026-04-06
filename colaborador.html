@@ -9,20 +9,20 @@
 </head>
 <body>
   <div class="page-shell">
-    <div id="errorPanel" class="card hidden"></div>
-    <header class="page-header">
+    <div id="errorPanel" class="error-panel hidden"></div>
+    <header class="page-header" style="margin-bottom: 28px;">
       <div>
-        <h1 id="collabTitle">Bienvenido</h1>
-        <p id="collabSubtitle" class="note">Información de los bloques disponibles y tus turnos.</p>
-      </div>
-      <div class="top-bar">
-        <button class="button secondary" id="tabAvailableBtn">Disponible</button>
-        <button class="button secondary" id="tabMyTurnsBtn">Mis Turnos</button>
-        <button class="button secondary" id="tabNotificationsBtn">Notificaciones</button>
+        <h1 id="collabTitle" style="margin-bottom: 6px;">👋 Bienvenido</h1>
+        <p id="collabSubtitle" class="note">Tus bloques disponibles y turnos confirmados.</p>
       </div>
     </header>
+    <div class="tabs" style="margin-bottom: 24px;">
+      <button class="tab-button active" id="tabAvailableBtn">📋 Disponible <span class="badge" id="badgeAvailable">0</span></button>
+      <button class="tab-button" id="tabMyTurnsBtn">✅ Mis turnos <span class="badge" id="badgeMyTurns">0</span></button>
+      <button class="tab-button" id="tabNotificationsBtn">🔔 Notificaciones <span class="badge" id="badgeNotifications">0</span></button>
+    </div>
     <div class="chip-bar" id="collabChips"></div>
-    <main class="page-grid">
+    <main>
       <section class="card" id="availableSection"></section>
       <section class="card hidden" id="myTurnsSection"></section>
       <section class="card hidden" id="notificationsSection"></section>

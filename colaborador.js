@@ -121,35 +121,58 @@ function renderChips() {
   const mine = getMyTurns().length;
   const unseen = collabState.notifications.filter(n => !n.read).length;
   collabChips.innerHTML = '';
+  const badges = document.querySelectorAll('.badge');
+  if (badges[0]) badges[0].textContent = available;
+  if (badges[1]) badges[1].textContent = mine;
+  if (badges[2]) badges[2].textContent = unseen;
   const chips = [
-    { label: 'Disponible', value: available },
-    { label: 'Mis turnos', value: mine },
-    { label: 'No leídas', value: unseen }
+    { label: '📋 Disponible', value: available },
+    { label: '✅ Mis turnos', value: mine },
+    { label: '🔔 No leídas', value: unseen }
   ];
   chips.forEach(chip => {
     const button = document.createElement('div');
     button.className = 'chip';
-    button.textContent = `${chip.label} `;
-    const badge = document.createElement('span'); badge.className = 'badge'; badge.textContent = chip.value;
-    button.appendChild(badge);
+    button.innerHTML = `${chip.label} <span class="badge">${chip.value}</span>`;
     collabChips.append(button);
   });
 }
 function renderAvailable() {
   const blocks = getAvailableBlocks();
-  availableSection.innerHTML = '<div class="section-title"><h2>Bloques disponibles</h2></div>';
-  if (!blocks.length) { availableSection.innerHTML += '<p class="note">No hay bloques disponibles para tus actividades en las semanas visibles.</p>'; return; }
+  availableSection.innerHTML = '<div class="section-title"><h2>📋 Bloques disponibles</h2></div>';
+  if (!blocks.length) { availableSection.innerHTML += '<div class="empty-state"><p>No hay bloques disponibles para tus actividades en las próximas semanas.</p></div>'; return; }
   blocks.forEach(block => {
     const card = document.createElement('div');
     const matchCount = block.activityIds.filter(id => collabState.collaborator.activityIds?.includes(id)).length;
     const assigned = block.collaboratorIds?.length || 0;
+    const percentFilled = Math.round((assigned / block.peopleNeeded) * 100);
     card.className = 'block-card';
     card.innerHTML = `
-      <div class="status"><span class="status-pill ${block.priority ? 'prioritario' : 'sin-cubrir'}">${block.priority ? 'PRIORITARIO' : 'Disponible'}</span></div>
-      <div class="meta"><strong>${formatDay(block.date)}</strong><span>${block.slot}</span><span>${assigned}/${block.peopleNeeded} personas</span></div>
-      <div class="note">Actividades compatibles: ${matchCount}/${block.activityIds?.length || 0}</div>
-      <div class="meta">${block.activityIds.map(id => `<span class="badge-pill" style="background:${getActivityColor(id)}">${collabState.activities[id]?.name || id}</span>`).join(' ')}</div>
-      <div class="card-footer"><button class="button primary" data-week="${block.weekId}" data-id="${block.id}">Me apunto</button><button class="button secondary" data-detail="${block.id}" data-week="${block.weekId}">Ver</button></div>
+      <div class="status">
+        <span class="status-pill ${block.priority ? 'prioritario' : 'sin-cubrir'}">${block.priority ? '🚨 PRIORITARIO' : '✅ Disponible'}</span>
+      </div>
+      <div class="meta" style="font-size: 1rem; margin-bottom: 8px;">
+        <strong style="font-size: 1.05rem;">📅 ${formatDay(block.date)} • 🕐 ${block.slot}</strong>
+      </div>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+        <div style="background: var(--surface-hover); padding: 10px; border-radius: 8px;">
+          <div class="note">👥 Equipo</div>
+          <div style="font-weight: 700; color: var(--primary); font-size: 1.1rem;">${assigned}/${block.peopleNeeded}</div>
+          <div style="height: 4px; background: var(--border); border-radius: 2px; margin-top: 6px;"><div style="height: 100%; background: var(--success); width: ${percentFilled}%; border-radius: 2px;"></div></div>
+        </div>
+        <div style="background: var(--surface-hover); padding: 10px; border-radius: 8px;">
+          <div class="note">🎯 Actividades</div>
+          <div style="font-weight: 700; color: var(--primary); font-size: 1.1rem;">${matchCount}/${block.activityIds?.length || 0}</div>
+        </div>
+      </div>
+      <div class="meta" style="margin-bottom: 12px;">
+        ${block.activityIds.map(id => `<span class="badge-pill" style="background:${getActivityColor(id)}20; color: ${getActivityColor(id)}">${collabState.activities[id]?.name || id}</span>`).join(' ')}
+      </div>
+      ${block.notes ? `<div class="note" style="margin-bottom: 12px;">📝 ${block.notes}</div>` : ''}
+      <div class="card-footer">
+        <button class="button success" data-week="${block.weekId}" data-id="${block.id}" style="flex: 1;">✨ Me apunto</button>
+        <button class="button secondary" data-detail="${block.id}" data-week="${block.weekId}">📖 Ver detalles</button>
+      </div>
     `;
     card.querySelector('[data-week]')?.addEventListener('click', signUpToBlock);
     card.querySelector('[data-detail]')?.addEventListener('click', () => openDetailModal(block));
@@ -163,30 +186,40 @@ function getActivityColor(id) {
 }
 function renderMyTurns() {
   const blocks = getMyTurns();
-  myTurnsSection.innerHTML = '<div class="section-title"><h2>Mis turnos</h2></div>';
-  if (!blocks.length) { myTurnsSection.innerHTML += '<p class="note">Todavía no te has apuntado a ningún bloque.</p>'; return; }
+  myTurnsSection.innerHTML = '<div class="section-title"><h2>✅ Mis turnos</h2></div>';
+  if (!blocks.length) { myTurnsSection.innerHTML += '<div class="empty-state"><p>No te has apuntado a ningún bloque todavía. 👀</p></div>'; return; }
   blocks.forEach(block => {
     const card = document.createElement('div');
-    const status = block.confirmed ? 'Confirmado' : 'Esperando confirmación de los papás';
+    const status = block.confirmed ? '✅ Confirmado' : '⏳ Esperando confirmación';
     const statusClass = block.confirmed ? 'confirmado' : 'pending';
     card.className = 'block-card';
     card.innerHTML = `
       <div class="status"><span class="status-pill ${statusClass}">${status}</span></div>
-      <div class="meta"><strong>${formatDay(block.date)}</strong><span>${block.slot}</span><span>${(block.collaboratorIds?.length||0)}/${block.peopleNeeded} personas</span></div>
-      <div class="note">Actividades: ${block.activityIds.map(id => collabState.activities[id]?.name || id).join(', ')}</div>
-      <div class="card-footer"><button class="button secondary" data-detail="${block.id}" data-week="${block.weekId}">Ver detalles</button></div>
+      <div class="meta" style="font-size: 1rem; margin-bottom: 8px;">
+        <strong style="font-size: 1.05rem;">📅 ${formatDay(block.date)} • 🕐 ${block.slot}</strong>
+      </div>
+      <div style="background: var(--surface-hover); padding: 10px 12px; border-radius: 8px; margin-bottom: 12px; font-size: 0.95rem;">
+        <div class="note">👥 ${(block.collaboratorIds?.length||0)} de ${block.peopleNeeded} confirmadas</div>
+      </div>
+      <div class="note" style="margin-bottom: 12px;">📝 Actividades: ${block.activityIds.map(id => collabState.activities[id]?.name || id).join(', ')}</div>
+      <div class="card-footer">
+        <button class="button secondary" data-detail="${block.id}" data-week="${block.weekId}" style="flex: 1;">📖 Ver detalles</button>
+      </div>
     `;
     card.querySelector('[data-detail]')?.addEventListener('click', () => openDetailModal(block));
     myTurnsSection.append(card);
   });
 }
 function renderNotifications() {
-  notificationsSection.innerHTML = '<div class="section-title"><h2>Notificaciones</h2></div>';
-  if (!collabState.notifications.length) { notificationsSection.innerHTML += '<p class="note">No hay notificaciones nuevas.</p>'; return; }
+  notificationsSection.innerHTML = '<div class="section-title"><h2>🔔 Notificaciones</h2></div>';
+  if (!collabState.notifications.length) { notificationsSection.innerHTML += '<div class="empty-state"><p>No tienes notificaciones nuevas. 📭</p></div>'; return; }
   collabState.notifications.forEach(note => {
     const item = document.createElement('div');
-    item.className = `notification-item${note.read ? '' : ' unread'}`;
-    item.innerHTML = `<div>${note.text}</div><div class="small">${new Date(note.date).toLocaleString('es-ES')}</div>`;
+    const isSuccess = note.type === 'confirmado';
+    const isDanger = note.type === 'rechazado';
+    item.className = `notification-item${note.read ? '' : ' unread'} ${isSuccess ? 'success' : isDanger ? 'danger' : ''}`;
+    const icon = isSuccess ? '✅' : isDanger ? '❌' : '📢';
+    item.innerHTML = `<div style="font-weight: 600; margin-bottom: 4px;">${icon} ${note.text}</div><div class="small">🕒 ${new Date(note.date).toLocaleString('es-ES')}</div>`;
     notificationsSection.append(item);
   });
 }
