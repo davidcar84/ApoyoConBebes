@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ApoyoConBebes - Papás</title>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="stylesheet" href="app.css" />
+</head>
+<body>
+  <div class="page-shell">
+    <div id="loginScreen" class="card">
+      <h1>Acceso Papás</h1>
+      <p>Introduce el PIN para acceder a la vista de padres.</p>
+      <form id="loginForm">
+        <label for="pinInput">PIN</label>
+        <input type="password" id="pinInput" placeholder="Código de acceso" required />
+        <button class="button primary" type="submit">Entrar</button>
+      </form>
+      <p id="loginError" class="note" style="color:#b91c1c; display:none;">PIN incorrecto.</p>
+    </div>
+    <div id="adminApp" class="hidden">
+      <header class="page-header">
+        <div>
+          <h1>ApoyoConBebes</h1>
+          <p class="note">Vista de papás: agenda, colaboradores, actividades y notificaciones.</p>
+        </div>
+        <div class="top-bar">
+          <button class="button secondary" id="copyWeekBtn">Copiar semana anterior</button>
+          <button class="button secondary" id="newBlockBtn">Crear bloque</button>
+        </div>
+      </header>
+      <div class="page-grid">
+        <aside class="card">
+          <div class="section-title"><h2>Resumen</h2></div>
+          <div class="chip-bar" id="stateChips"></div>
+          <div class="section-title"><h2>Control</h2></div>
+          <div class="field-grid">
+            <div>
+              <label>Semana</label>
+              <div class="chip" id="weekLabel"></div>
+            </div>
+          </div>
+          <div class="field-grid">
+            <button class="button secondary" id="prevWeekBtn">Anterior</button>
+            <button class="button secondary" id="nextWeekBtn">Siguiente</button>
+          </div>
+          <div class="section-title"><h2>Notificaciones</h2></div>
+          <div id="parentNotifications"></div>
+        </aside>
+        <main>
+          <section class="card" id="agendaSection">
+            <div class="section-title"><h2>Agenda semanal</h2></div>
+            <div id="blocksContainer"></div>
+          </section>
+          <section class="card" id="collaboratorsSection">
+            <div class="section-title"><h2>Colaboradores</h2></div>
+            <div id="collaboratorList"></div>
+            <form id="collaboratorForm">
+              <h3>Agregar / editar colaborador</h3>
+              <div class="field-grid">
+                <label>Nombre<input id="collabName" required /></label>
+                <label>Link personal<input id="collabLink" readonly /></label>
+              </div>
+              <label>Actividades</label>
+              <div id="collabActivities" class="checkbox-group"></div>
+              <label>Disponibilidad</label>
+              <div id="collabAvailability" class="checkbox-group"></div>
+              <label>Notas<textarea id="collabNotes"></textarea></label>
+              <div class="card-footer">
+                <button class="button primary" type="submit">Guardar colaborador</button>
+                <button class="button secondary" id="collabResetBtn" type="button">Nuevo</button>
+              </div>
+            </form>
+          </section>
+          <section class="card" id="activitiesSection">
+            <div class="section-title"><h2>Actividades</h2></div>
+            <div id="activityList"></div>
+            <form id="activityForm">
+              <h3>Agregar / editar actividad</h3>
+              <div class="field-grid">
+                <label>Nombre<input id="activityName" required /></label>
+                <label>Categoría<select id="activityCategory" required></select></label>
+              </div>
+              <div class="field-grid">
+                <label>Personas necesarias<select id="activityPeople" required><option value="1">1</option><option value="2">2</option><option value="3">3</option></select></label>
+                <label class="checkbox-pill"><input type="checkbox" id="activityExperience" /> Requiere experiencia</label>
+              </div>
+              <label>Instrucciones<textarea id="activityInstructions"></textarea></label>
+              <div class="card-footer">
+                <button class="button primary" type="submit">Guardar actividad</button>
+                <button class="button secondary" id="activityResetBtn" type="button">Nuevo</button>
+              </div>
+            </form>
+          </section>
+        </main>
+      </div>
+    </div>
+  </div>
+  <div id="modalOverlay" class="hidden"></div>
+  <script src="firebase.js"></script>
+  <script src="padres.js"></script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('service-worker.js').catch(() => {});
+    }
+  </script>
+</body>
+</html>

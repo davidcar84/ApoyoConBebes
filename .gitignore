@@ -1,0 +1,17 @@
+# Node / system files
+node_modules/
+.DS_Store
+Thumbs.db
+*.log
+
+# Editor files
+.vscode/
+*.swp
+*.swo
+
+# MacOS
+.AppleDouble
+.LSOverride
+
+# Cache files
+cache/

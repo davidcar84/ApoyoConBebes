@@ -1,0 +1,10 @@
+{
+  "ventana_semanas": 4,
+  "bloques_horarios": ["7-9 AM", "9-12 PM", "12-2 PM", "2-5 PM", "5-8 PM"],
+  "categorias": [
+    {"value": "Niños", "label": "Niños", "color": "#4f8cff"},
+    {"value": "Mascota", "label": "Mascota", "color": "#4ccf68"},
+    {"value": "Hogar", "label": "Hogar", "color": "#ffb347"}
+  ],
+  "pin_padres": "2026"
+}

@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ApoyoConBebes - Colaborador</title>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="stylesheet" href="app.css" />
+</head>
+<body>
+  <div class="page-shell">
+    <div id="errorPanel" class="card hidden"></div>
+    <header class="page-header">
+      <div>
+        <h1 id="collabTitle">Bienvenido</h1>
+        <p id="collabSubtitle" class="note">Información de los bloques disponibles y tus turnos.</p>
+      </div>
+      <div class="top-bar">
+        <button class="button secondary" id="tabAvailableBtn">Disponible</button>
+        <button class="button secondary" id="tabMyTurnsBtn">Mis Turnos</button>
+        <button class="button secondary" id="tabNotificationsBtn">Notificaciones</button>
+      </div>
+    </header>
+    <div class="chip-bar" id="collabChips"></div>
+    <main class="page-grid">
+      <section class="card" id="availableSection"></section>
+      <section class="card hidden" id="myTurnsSection"></section>
+      <section class="card hidden" id="notificationsSection"></section>
+    </main>
+  </div>
+  <div id="detailModal" class="hidden"></div>
+  <script src="firebase.js"></script>
+  <script src="colaborador.js"></script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('service-worker.js').catch(() => {});
+    }
+  </script>
+</body>
+</html>
