@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>ApoyoConBebes — Colaborador</title>
+  <link rel="manifest" href="manifest.json"/>
+  <link rel="stylesheet" href="app.css"/>
+  <meta name="theme-color" content="#2563eb"/>
+  <link rel="apple-touch-icon" href="icons/icon-192.svg"/>
+</head>
+<body>
+
+<!-- Pantalla de código (sin ?id en URL) -->
+<div id="codeScreen" class="screen hidden">
+  <div class="screen-card">
+    <h1>ApoyoConBebes</h1>
+    <p>Ingresa tu código personal de colaborador</p>
+    <form id="codeForm" novalidate>
+      <div class="field">
+        <label>Tu código</label>
+        <input type="text" id="codeInput" autocomplete="off" placeholder="Código recibido por WhatsApp" required/>
+        <div id="codeError" class="field-error hidden">Código no encontrado. Verifica con los papás.</div>
+      </div>
+      <button type="submit" class="btn btn-primary" style="width:100%;margin-top:4px;">Entrar</button>
+    </form>
+  </div>
+</div>
+
+<!-- Pantalla de error (link inválido) -->
+<div id="errorScreen" class="screen hidden">
+  <div class="screen-card" style="text-align:center;">
+    <h1 style="color:var(--red);">Link inválido</h1>
+    <p>Este link no corresponde a ningún colaborador registrado. Contacta a los papás para obtener tu link.</p>
+    <a href="index.html" class="btn btn-ghost" style="margin-top:16px;display:inline-block;">Ir al inicio</a>
+  </div>
+</div>
+
+<!-- App principal del colaborador -->
+<div id="collabApp" class="app hidden">
+
+  <header class="header">
+    <div>
+      <div id="collabName" class="header-title">Cargando…</div>
+      <div id="collabSub"  class="header-sub"></div>
+    </div>
+    <div class="bell-wrap">
+      <button id="bellBtn" class="bell-btn" aria-label="Notificaciones">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+          <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+        </svg>
+        <span id="bellBadge" class="bell-badge hidden"></span>
+      </button>
+      <div id="notifPanel" class="notif-panel hidden">
+        <div class="notif-panel-head">
+          <h3>Notificaciones</h3>
+          <button id="markReadBtn" class="btn btn-ghost btn-sm">Marcar leídas</button>
+        </div>
+        <div id="notifBody" class="notif-body">
+          <div class="empty">Sin notificaciones</div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <nav class="tabs" role="tablist">
+    <button class="tab active" data-tab="disponible" role="tab">Disponible</button>
+    <button class="tab"        data-tab="misturnos"  role="tab">Mis turnos</button>
+  </nav>
+
+  <main class="main">
+
+    <!-- ── DISPONIBLE ── -->
+    <section id="disponible" class="panel active">
+      <p class="panel-desc">Turnos en los que puedes ayudar. Toca una tarjeta para ver el detalle.</p>
+      <div id="disponibleChips" class="chips"></div>
+      <div id="disponibleBlocks"></div>
+    </section>
+
+    <!-- ── MIS TURNOS ── -->
+    <section id="misturnos" class="panel">
+      <p class="panel-desc">Bloques a los que te apuntaste.</p>
+      <div id="misturnosChips" class="chips"></div>
+      <div id="misturnosBlocks"></div>
+    </section>
+
+  </main>
+</div>
+
+<script src="firebase.js"></script>
+<script src="colaborador.js"></script>
+<script>
+  if ('serviceWorker' in navigator) navigator.serviceWorker.register('service-worker.js').catch(() => {});
+</script>
+</body>
+</html>

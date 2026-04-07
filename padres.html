@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>ApoyoConBebes — Papás</title>
+  <link rel="manifest" href="manifest.json"/>
+  <link rel="stylesheet" href="app.css"/>
+  <meta name="theme-color" content="#2563eb"/>
+  <link rel="apple-touch-icon" href="icons/icon-192.svg"/>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- Header -->
+  <header class="header">
+    <div>
+      <div class="header-title">ApoyoConBebes</div>
+      <div class="header-sub">Vista Papás</div>
+    </div>
+    <div class="bell-wrap">
+      <button id="bellBtn" class="bell-btn" aria-label="Notificaciones">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+          <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+        </svg>
+        <span id="bellBadge" class="bell-badge hidden"></span>
+      </button>
+      <div id="notifPanel" class="notif-panel hidden">
+        <div class="notif-panel-head">
+          <h3>Notificaciones</h3>
+          <button id="markReadBtn" class="btn btn-ghost btn-sm">Marcar leídas</button>
+        </div>
+        <div id="notifBody" class="notif-body">
+          <div class="empty">Sin notificaciones</div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Tabs -->
+  <nav class="tabs" role="tablist">
+    <button class="tab active" data-tab="agenda"       role="tab">Agenda</button>
+    <button class="tab"        data-tab="colaboradores" role="tab">Colaboradores</button>
+    <button class="tab"        data-tab="actividades"   role="tab">Actividades</button>
+  </nav>
+
+  <!-- Content -->
+  <main class="main">
+
+    <!-- ── AGENDA ── -->
+    <section id="agenda" class="panel active">
+      <p class="panel-desc">Gestiona los bloques de ayuda semana a semana</p>
+
+      <div class="week-nav">
+        <button id="prevWeek" class="btn btn-ghost btn-sm">&#8592; Anterior</button>
+        <div id="weekLabel" class="week-label"></div>
+        <button id="nextWeek" class="btn btn-ghost btn-sm">Siguiente &#8594;</button>
+      </div>
+
+      <div class="week-note">
+        <div class="week-note-row">
+          <textarea id="weekNote" placeholder="Nota de la semana (ej: señora de aseo Lun y Mié 8-12)…" rows="2"></textarea>
+          <button id="saveNote" class="btn btn-ghost btn-sm">Guardar</button>
+        </div>
+      </div>
+
+      <div class="btn-row" style="margin-bottom:16px;">
+        <button id="newBlockBtn" class="btn btn-primary">+ Nuevo bloque</button>
+        <button id="copyWeekBtn" class="btn btn-ghost">Copiar semana anterior</button>
+      </div>
+
+      <div id="agendaChips" class="chips"></div>
+      <div id="agendaBlocks"></div>
+    </section>
+
+    <!-- ── COLABORADORES ── -->
+    <section id="colaboradores" class="panel">
+      <p class="panel-desc">Red de apoyo familiar y amigos</p>
+
+      <div id="collabList"></div>
+
+      <hr class="divider"/>
+      <h3 id="collabFormTitle" style="font-size:.95rem;font-weight:700;margin-bottom:16px;">Agregar colaborador</h3>
+
+      <form id="collabForm" novalidate>
+        <div class="form-row">
+          <div class="field">
+            <label>Nombre <span style="color:var(--red)">*</span></label>
+            <input type="text" id="collabName" placeholder="Nombre completo" required/>
+          </div>
+          <div class="field">
+            <label>Link personal</label>
+            <div class="link-row">
+              <input type="text" id="collabLink" readonly placeholder="Se genera al guardar"/>
+              <button type="button" id="copyLinkBtn" class="btn btn-ghost btn-sm">Copiar</button>
+            </div>
+          </div>
+        </div>
+        <div class="field">
+          <label>Actividades que puede realizar</label>
+          <div id="collabActsCheck" class="check-group"></div>
+        </div>
+        <div class="field">
+          <label>Días disponibles</label>
+          <div id="collabDaysCheck" class="check-group"></div>
+        </div>
+        <div class="field">
+          <label>Notas</label>
+          <textarea id="collabNotes" placeholder="Observaciones sobre el colaborador…"></textarea>
+        </div>
+        <div class="btn-row">
+          <button type="submit" class="btn btn-primary">Guardar</button>
+          <button type="button" id="collabCancel" class="btn btn-ghost">Cancelar</button>
+        </div>
+      </form>
+    </section>
+
+    <!-- ── ACTIVIDADES ── -->
+    <section id="actividades" class="panel">
+      <p class="panel-desc">Define las actividades disponibles para los bloques</p>
+
+      <div id="actsList"></div>
+
+      <hr class="divider"/>
+      <h3 id="actFormTitle" style="font-size:.95rem;font-weight:700;margin-bottom:16px;">Agregar actividad</h3>
+
+      <form id="actForm" novalidate>
+        <div class="form-row">
+          <div class="field">
+            <label>Nombre <span style="color:var(--red)">*</span></label>
+            <input type="text" id="actName" placeholder="Nombre de la actividad" required/>
+          </div>
+          <div class="field">
+            <label>Categoría</label>
+            <select id="actCategory"></select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="field">
+            <label>Personas requeridas</label>
+            <select id="actPeople">
+              <option value="1">1 persona</option>
+              <option value="2">2 personas</option>
+              <option value="3">3 personas</option>
+            </select>
+          </div>
+          <div class="field" style="display:flex;align-items:center;gap:8px;padding-top:22px;">
+            <div class="check-inline">
+              <input type="checkbox" id="actExp"/>
+              <label for="actExp" style="margin:0;font-weight:500;">Requiere experiencia</label>
+            </div>
+          </div>
+        </div>
+        <div class="field">
+          <label>Instrucciones detalladas</label>
+          <textarea id="actInstr" placeholder="Describe paso a paso cómo realizar la actividad…"></textarea>
+        </div>
+        <div class="btn-row">
+          <button type="submit" class="btn btn-primary">Guardar</button>
+          <button type="button" id="actCancel" class="btn btn-ghost">Cancelar</button>
+        </div>
+      </form>
+    </section>
+
+  </main>
+</div>
+
+<script src="firebase.js"></script>
+<script src="padres.js"></script>
+<script>
+  if ('serviceWorker' in navigator) navigator.serviceWorker.register('service-worker.js').catch(() => {});
+</script>
+</body>
+</html>
