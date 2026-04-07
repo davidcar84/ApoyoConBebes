@@ -379,7 +379,7 @@ async function rejectBlock(b) {
 
 // ── Copiar semana anterior ─────────────────────────────────
 async function copyPrevWeek() {
-  const prev = isoWeek(new Date(weekMonday(S.week).getTime() - 7 * 86400000));
+  const prev = isoWeek(new Date(weekMonday(S.week).getTime() - 7 * 86400000 + 43200000));
   const src  = S.weeks[prev];
   if (!src?.blocks) { alert('No hay bloques en la semana anterior.'); return; }
 
@@ -537,12 +537,12 @@ function setupListeners() {
 
   // Week nav
   el('prevWeek').addEventListener('click', () => {
-    S.week = isoWeek(new Date(weekMonday(S.week).getTime() - 7 * 86400000));
+    S.week = isoWeek(new Date(weekMonday(S.week).getTime() - 7 * 86400000 + 43200000));
     S.filter = null;
     renderWeekHeader(); renderChips(); renderBlocks();
   });
   el('nextWeek').addEventListener('click', () => {
-    S.week = isoWeek(new Date(weekMonday(S.week).getTime() + 7 * 86400000));
+    S.week = isoWeek(new Date(weekMonday(S.week).getTime() + 7 * 86400000 + 43200000));
     S.filter = null;
     renderWeekHeader(); renderChips(); renderBlocks();
   });
