@@ -1,14 +1,18 @@
 'use strict';
 /* ============================================================
    SYNC-CALENDAR.MJS — ApoyoConBebes
-   Lee el calendario público de Google y crea bloques/actividades
-   para la semana actual en Firebase, si no existen ya.
+   Lee el calendario público de Google y crea/actualiza bloques y
+   actividades para la semana actual + N siguientes en Firebase.
+   Cada bloque importado guarda `gcalUid` (uid del evento, o
+   `uid_fecha` para eventos recurrentes) para poder actualizarlo o
+   borrarlo si el evento cambia, sin generar duplicados.
    ============================================================ */
 
 import ical from 'node-ical';
 
 const FIREBASE_URL = 'https://apoyoconbebes-default-rtdb.firebaseio.com';
 const CALENDAR_ICS_URL = process.env.CALENDAR_ICS_URL;
+const WEEKS_AHEAD = Number(process.env.WEEKS_AHEAD || 3); // semana actual + 2 siguientes
 const TZ = 'America/Bogota';
 const DEFAULT_CATEGORY = 'Niños';
 
@@ -50,6 +54,15 @@ function weekDates(wid) {
   });
 }
 
+function targetWeeks(n) {
+  const today = new Date();
+  const wids = [];
+  for (let i = 0; i < n; i++) {
+    wids.push(isoWeek(new Date(today.getTime() + i * 7 * 86400000)));
+  }
+  return wids;
+}
+
 function slotForHour(hour) {
   return SLOTS.find(s => hour >= s.start && hour < s.end)?.label || null;
 }
@@ -63,27 +76,24 @@ function localDateHour(date) {
   return { date: `${parts.year}-${parts.month}-${parts.day}`, hour: Number(parts.hour) };
 }
 
-// ── Ocurrencias de esta semana ──────────────────────────────
-function weekOccurrences(events, weekDateSet) {
-  const mon = weekMonday(isoWeek(new Date()));
-  const nextMon = new Date(mon); nextMon.setUTCDate(mon.getUTCDate() + 7);
-
+// ── Ocurrencias dentro del rango de semanas objetivo ────────
+function collectOccurrences(events, rangeStart, rangeEnd, allDates) {
   const occs = [];
   for (const ev of Object.values(events)) {
-    if (ev.type !== 'VEVENT' || !ev.summary) continue;
+    if (ev.type !== 'VEVENT' || !ev.summary || !ev.uid) continue;
     if (ev.datetype !== 'date-time') continue; // ignora eventos de día completo
 
     if (ev.rrule) {
       // rrule.js trabaja con la hora local "tal cual" del DTSTART como si fuera UTC
-      for (const occ of ev.rrule.between(mon, nextMon, true)) {
+      for (const occ of ev.rrule.between(rangeStart, rangeEnd, true)) {
         const date = occ.toISOString().slice(0, 10);
-        if (!weekDateSet.has(date)) continue;
-        occs.push({ summary: ev.summary, date, hour: occ.getUTCHours() });
+        if (!allDates.has(date)) continue;
+        occs.push({ summary: ev.summary, date, hour: occ.getUTCHours(), key: `${ev.uid}_${date}` });
       }
     } else {
       const { date, hour } = localDateHour(ev.start);
-      if (!weekDateSet.has(date)) continue;
-      occs.push({ summary: ev.summary, date, hour });
+      if (!allDates.has(date)) continue;
+      occs.push({ summary: ev.summary, date, hour, key: ev.uid });
     }
   }
   return occs;
@@ -93,45 +103,101 @@ function weekOccurrences(events, weekDateSet) {
 async function main() {
   if (!CALENDAR_ICS_URL) throw new Error('Falta CALENDAR_ICS_URL');
 
-  const wid = isoWeek(new Date());
-  const weekDateSet = new Set(weekDates(wid));
+  const wids = targetWeeks(WEEKS_AHEAD);
+  const dateToWid = new Map();
+  wids.forEach(wid => weekDates(wid).forEach(d => dateToWid.set(d, wid)));
+  const allDates = new Set(dateToWid.keys());
 
-  const [events, activities, weekData] = await Promise.all([
+  const rangeStart = weekMonday(wids[0]);
+  const rangeEnd = new Date(rangeStart.getTime() + WEEKS_AHEAD * 7 * 86400000);
+
+  const [events, activities, ...weeksData] = await Promise.all([
     ical.async.fromURL(CALENDAR_ICS_URL),
     fetch(`${FIREBASE_URL}/activities.json`).then(r => r.json()),
-    fetch(`${FIREBASE_URL}/weeks/${wid}.json`).then(r => r.json()),
+    ...wids.map(wid => fetch(`${FIREBASE_URL}/weeks/${wid}.json`).then(r => r.json())),
   ]);
 
   const acts = activities || {};
-  const existingBlocks = Object.values(weekData?.blocks || {});
-  const occs = weekOccurrences(events, weekDateSet);
+  const weeksBlocks = {};
+  wids.forEach((wid, i) => { weeksBlocks[wid] = weeksData[i]?.blocks || {}; });
+
+  // Bloques ya importados anteriormente, indexados por gcalUid
+  const importedByKey = new Map();
+  for (const wid of wids) {
+    for (const [id, b] of Object.entries(weeksBlocks[wid])) {
+      if (b.gcalUid) importedByKey.set(b.gcalUid, { wid, id, block: b });
+    }
+  }
+
+  const occs = collectOccurrences(events, rangeStart, rangeEnd, allDates);
 
   const updates = {};
-  const newBlocks = [];
+  const matchedKeys = new Set();
+  let created = 0, updated = 0, moved = 0, removed = 0;
 
-  for (const occ of occs) {
-    const slot = slotForHour(occ.hour);
-    if (!slot) continue; // fuera de los bloques horarios definidos
-
-    const taken = existingBlocks.some(b => b.date === occ.date && b.slot === slot)
-      || newBlocks.some(b => b.date === occ.date && b.slot === slot);
-    if (taken) continue; // no pisar bloques ya existentes
-
-    const name = occ.summary.trim();
+  const findOrCreateActivity = name => {
     let act = Object.values(acts).find(a => a.name.toLowerCase() === name.toLowerCase());
     if (!act) {
       act = { id: uid(), name, category: DEFAULT_CATEGORY, people: 1, exp: false, instr: '' };
       acts[act.id] = act;
       updates[`activities/${act.id}`] = act;
     }
+    return act;
+  };
 
-    const block = {
-      id: uid(), date: occ.date, slot, people: 1,
-      actIds: [act.id], collabIds: [], priority: false,
-      notes: 'Importado de Google Calendar', confirmed: false,
-    };
-    newBlocks.push(block);
-    updates[`weeks/${wid}/blocks/${block.id}`] = block;
+  for (const occ of occs) {
+    const slot = slotForHour(occ.hour);
+    if (!slot) continue; // fuera de los bloques horarios definidos
+    const targetWid = dateToWid.get(occ.date);
+    if (!targetWid) continue;
+
+    matchedKeys.add(occ.key);
+    const act = findOrCreateActivity(occ.summary.trim());
+    const existing = importedByKey.get(occ.key);
+
+    if (existing) {
+      const { wid: oldWid, id, block } = existing;
+      const sameSpot = block.date === occ.date && block.slot === slot && block.actIds?.[0] === act.id;
+      if (sameSpot) continue; // sin cambios
+
+      const newBlock = { ...block, date: occ.date, slot, actIds: [act.id] };
+      if (oldWid === targetWid) {
+        updates[`weeks/${targetWid}/blocks/${id}`] = newBlock;
+        weeksBlocks[targetWid][id] = newBlock;
+        updated++;
+      } else {
+        const taken = Object.values(weeksBlocks[targetWid]).some(b => b.date === occ.date && b.slot === slot && b.id !== id);
+        if (taken) {
+          console.warn(`No se pudo mover el bloque importado "${occ.summary}" a ${occ.date} ${slot}: ya hay otro bloque ahí.`);
+          continue;
+        }
+        updates[`weeks/${oldWid}/blocks/${id}`] = null;
+        delete weeksBlocks[oldWid][id];
+        updates[`weeks/${targetWid}/blocks/${id}`] = newBlock;
+        weeksBlocks[targetWid][id] = newBlock;
+        moved++;
+      }
+    } else {
+      const taken = Object.values(weeksBlocks[targetWid]).some(b => b.date === occ.date && b.slot === slot);
+      if (taken) continue; // no pisar bloques ya existentes (manuales u otros)
+
+      const block = {
+        id: uid(), date: occ.date, slot, people: 1,
+        actIds: [act.id], collabIds: [], priority: false,
+        notes: 'Importado de Google Calendar', confirmed: false,
+        gcalUid: occ.key,
+      };
+      updates[`weeks/${targetWid}/blocks/${block.id}`] = block;
+      weeksBlocks[targetWid][block.id] = block;
+      created++;
+    }
+  }
+
+  // Bloques importados cuyo evento ya no existe o salió del rango: eliminarlos
+  for (const [key, { wid, id }] of importedByKey) {
+    if (matchedKeys.has(key)) continue;
+    updates[`weeks/${wid}/blocks/${id}`] = null;
+    removed++;
   }
 
   if (!Object.keys(updates).length) {
@@ -146,7 +212,7 @@ async function main() {
   });
   if (!res.ok) throw new Error(`Firebase ${res.status}: ${await res.text()}`);
 
-  console.log(`Sincronizados ${newBlocks.length} bloque(s) en la semana ${wid}.`);
+  console.log(`Creados: ${created}, actualizados: ${updated}, movidos: ${moved}, eliminados: ${removed} (semanas ${wids.join(', ')}).`);
 }
 
 main().catch(err => { console.error(err); process.exit(1); });
