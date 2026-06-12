@@ -1,0 +1,8 @@
+{
+  "name": "calendar-sync",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "node-ical": "^0.18.0"
+  }
+}
