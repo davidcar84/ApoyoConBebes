@@ -28,9 +28,9 @@ const SLOTS = [
 // Palabras clave -> categoría (orden = prioridad)
 const KEYWORD_CATEGORIES = [
   { category: 'Niños',   keywords: ['niños', 'niño', 'bebes', 'bebé', 'isa', 'mati'] },
-  { category: 'Mascota', keywords: ['mia', 'Jei'] },
+  { category: 'Mascota', keywords: ['mia', 'jei'] },
   { category: 'Visita',  keywords: ['visita'] },
-  { category: 'Otros',   keywords: ['cita', 'examen', 'exámenes', 'laboratorio', 'pilates', 'Diana', 'David'] },
+  { category: 'Otros',   keywords: ['cita', 'examen', 'exámenes', 'laboratorio', 'pilates', 'diana', 'david'] },
 ];
 
 function categoryForSummary(summary) {

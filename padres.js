@@ -12,6 +12,7 @@ const S = {
   acts:       {},       // { [id]: activity }
   notifs:     [],       // notificaciones de los papás
   filter:     null,     // chip de filtro activo
+  agendaView: 'list',   // 'list' | 'calendar'
   editCollab: null,     // id colaborador en edición
   editAct:    null,     // id actividad en edición
 };
@@ -195,7 +196,7 @@ function renderChips() {
     c.innerHTML = `${l} <span class="chip-n">${cnt[k]}</span>`;
     c.addEventListener('click', () => {
       S.filter = S.filter === k ? null : k;
-      renderChips(); renderBlocks();
+      renderChips(); renderAgenda();
     });
     bar.append(c);
   });
@@ -222,6 +223,90 @@ function renderBlocks() {
     byDay[date].forEach(b => g.append(buildBlockCard(b)));
     cont.append(g);
   });
+}
+
+function renderAgenda() {
+  if (S.agendaView === 'calendar') {
+    el('agendaBlocks').classList.add('hidden');
+    el('agendaCalendar').classList.remove('hidden');
+    renderCalendar();
+  } else {
+    el('agendaCalendar').classList.add('hidden');
+    el('agendaBlocks').classList.remove('hidden');
+    renderBlocks();
+  }
+}
+
+function catColor(b) {
+  const act = S.acts[(b.actIds || [])[0]];
+  const cat = S.cfg.categorias.find(c => c.value === act?.category);
+  return cat?.color || '#94a3b8';
+}
+
+function renderCalendar() {
+  let blocks = currentBlocks();
+  if (S.filter === 'prioritario')        blocks = blocks.filter(b => b.priority);
+  else if (S.filter)                     blocks = blocks.filter(b => blockStatus(b) === S.filter);
+
+  const dates = weekDates(S.week);
+  const slots = S.cfg.bloques_horarios;
+
+  const byCell = {};
+  blocks.forEach(b => {
+    const key = `${b.date}|${b.slot}`;
+    (byCell[key] = byCell[key] || []).push(b);
+  });
+
+  const cont = el('agendaCalendar');
+  cont.innerHTML = '';
+
+  // Leyenda de categorías
+  const legend = document.createElement('div'); legend.className = 'cal-legend';
+  S.cfg.categorias.forEach(c => {
+    const item = document.createElement('span'); item.className = 'cal-legend-item';
+    item.innerHTML = `<span class="cal-legend-dot" style="background:${c.color}"></span>${c.label}`;
+    legend.append(item);
+  });
+  cont.append(legend);
+
+  const wrap = document.createElement('div'); wrap.className = 'cal-wrap';
+  const grid = document.createElement('div'); grid.className = 'cal-grid';
+
+  grid.append(document.createElement('div')); // esquina vacía
+
+  dates.forEach(d => {
+    const cell = document.createElement('div'); cell.className = 'cal-header-cell';
+    cell.textContent = fmtDay(d);
+    grid.append(cell);
+  });
+
+  slots.forEach(slot => {
+    const label = document.createElement('div'); label.className = 'cal-slot-label';
+    label.textContent = slot;
+    grid.append(label);
+
+    dates.forEach(date => {
+      const cell = document.createElement('div'); cell.className = 'cal-cell';
+      (byCell[`${date}|${slot}`] || []).forEach(b => cell.append(buildCalBlock(b)));
+      grid.append(cell);
+    });
+  });
+
+  wrap.append(grid);
+  cont.append(wrap);
+}
+
+function buildCalBlock(b) {
+  const status = blockStatus(b);
+  const actNames = (b.actIds || []).map(id => S.acts[id]?.name).filter(Boolean).join(', ') || '—';
+
+  const div = document.createElement('div');
+  div.className = `cal-block ${status}`;
+  div.style.setProperty('--cat-color', catColor(b));
+  div.title = `${actNames}${b.notes ? ' — ' + b.notes : ''}`;
+  div.innerHTML = `<span class="cal-block-dot"></span>${b.priority ? '★ ' : ''}${actNames}`;
+  div.addEventListener('click', () => openBlockModal(b));
+  return div;
 }
 
 function buildBlockCard(b) {
@@ -502,7 +587,7 @@ function renderActs() {
 function renderAll() {
   renderWeekHeader();
   renderChips();
-  renderBlocks();
+  renderAgenda();
   renderCollabs();
   renderActs();
   updateBell();
@@ -539,12 +624,12 @@ function setupListeners() {
   el('prevWeek').addEventListener('click', () => {
     S.week = isoWeek(new Date(weekMonday(S.week).getTime() - 7 * 86400000 + 43200000));
     S.filter = null;
-    renderWeekHeader(); renderChips(); renderBlocks();
+    renderWeekHeader(); renderChips(); renderAgenda();
   });
   el('nextWeek').addEventListener('click', () => {
     S.week = isoWeek(new Date(weekMonday(S.week).getTime() + 7 * 86400000 + 43200000));
     S.filter = null;
-    renderWeekHeader(); renderChips(); renderBlocks();
+    renderWeekHeader(); renderChips(); renderAgenda();
   });
 
   // Week note
@@ -558,6 +643,15 @@ function setupListeners() {
   // Agenda
   el('newBlockBtn').addEventListener('click', () => openBlockModal());
   el('copyWeekBtn').addEventListener('click', copyPrevWeek);
+
+  // Vista lista / calendario
+  document.querySelectorAll('.view-btn').forEach(btn =>
+    btn.addEventListener('click', () => {
+      S.agendaView = btn.dataset.view;
+      document.querySelectorAll('.view-btn').forEach(b => b.classList.toggle('active', b === btn));
+      renderAgenda();
+    })
+  );
 
   // Collab form
   el('collabForm').addEventListener('submit', async e => {
