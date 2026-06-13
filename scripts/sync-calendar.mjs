@@ -28,15 +28,15 @@ const SLOTS = [
 // Palabras clave -> categoría (orden = prioridad)
 const KEYWORD_CATEGORIES = [
   { category: 'Niños',   keywords: ['niños', 'niño', 'bebes', 'bebé', 'isa', 'mati'] },
-  { category: 'Mascota', keywords: ['mia'] },
+  { category: 'Mascota', keywords: ['mia', 'Jei'] },
   { category: 'Visita',  keywords: ['visita'] },
-  { category: 'Otros',   keywords: ['cita', 'examen', 'laboratorio', 'pilates'] },
+  { category: 'Otros',   keywords: ['cita', 'examen', 'exámenes', 'laboratorio', 'pilates', 'Diana', 'David'] },
 ];
 
 function categoryForSummary(summary) {
   const s = summary.toLowerCase();
   for (const { category, keywords } of KEYWORD_CATEGORIES) {
-    if (keywords.some(k => s.includes(k))) return category;
+    if (keywords.some(k => s.includes(k.toLowerCase()))) return category;
   }
   return DEFAULT_CATEGORY;
 }
