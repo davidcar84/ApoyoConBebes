@@ -4,6 +4,8 @@
   "categorias": [
     { "value": "Niños",   "label": "Niños",   "color": "#2563eb" },
     { "value": "Mascota", "label": "Mascota", "color": "#16a34a" },
-    { "value": "Hogar",   "label": "Hogar",   "color": "#d97706" }
+    { "value": "Hogar",   "label": "Hogar",   "color": "#d97706" },
+    { "value": "Visita",  "label": "Visita",  "color": "#9333ea" },
+    { "value": "Otros",   "label": "Otros",   "color": "#6b7280" }
   ]
 }

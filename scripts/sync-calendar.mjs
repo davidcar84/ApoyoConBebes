@@ -25,6 +25,22 @@ const SLOTS = [
   { label: '5-8 PM',  start: 17, end: 20 },
 ];
 
+// Palabras clave -> categoría (orden = prioridad)
+const KEYWORD_CATEGORIES = [
+  { category: 'Niños',   keywords: ['niños', 'niño', 'bebes', 'bebé', 'isa', 'mati'] },
+  { category: 'Mascota', keywords: ['mia'] },
+  { category: 'Visita',  keywords: ['visita'] },
+  { category: 'Otros',   keywords: ['cita', 'examen', 'laboratorio', 'pilates'] },
+];
+
+function categoryForSummary(summary) {
+  const s = summary.toLowerCase();
+  for (const { category, keywords } of KEYWORD_CATEGORIES) {
+    if (keywords.some(k => s.includes(k))) return category;
+  }
+  return DEFAULT_CATEGORY;
+}
+
 const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
 
 // ── Cálculo de semana ISO (igual que padres.js) ────────────
@@ -136,9 +152,14 @@ async function main() {
   let created = 0, updated = 0, moved = 0, removed = 0;
 
   const findOrCreateActivity = name => {
+    const category = categoryForSummary(name);
     let act = Object.values(acts).find(a => a.name.toLowerCase() === name.toLowerCase());
     if (!act) {
-      act = { id: uid(), name, category: DEFAULT_CATEGORY, people: 1, exp: false, instr: '' };
+      act = { id: uid(), name, category, people: 1, exp: false, instr: '' };
+      acts[act.id] = act;
+      updates[`activities/${act.id}`] = act;
+    } else if (act.category !== category) {
+      act = { ...act, category };
       acts[act.id] = act;
       updates[`activities/${act.id}`] = act;
     }
