@@ -497,11 +497,15 @@ function openBlockModal(b = null) {
       date:     el('bDate').value,
       slot:     el('bSlot').value,
       people:   Number(el('bPeople').value),
-      actIds:   checked(el('bActs')),
+      actIds:   [
+        ...(b?.actIds || []).filter(id => S.acts[id]?.gcalImported),
+        ...checked(el('bActs')),
+      ],
       collabIds:checked(el('bCollabs')),
       priority: el('bPriority').checked,
       notes:    el('bNotes').value.trim(),
       confirmed: b?.confirmed || false,
+      ...(b?.gcalUid ? { gcalUid: b.gcalUid } : {}),
     };
     // Validar slot duplicado
     const taken = currentBlocks().some(x => x.id !== nb.id && x.date === nb.date && x.slot === nb.slot);
