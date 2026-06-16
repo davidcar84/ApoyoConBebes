@@ -13,6 +13,7 @@ const S = {
   notifs:     [],       // notificaciones de los papás
   filter:     null,     // chip de filtro activo
   agendaView: 'list',   // 'list' | 'calendar'
+  calDay:     null,     // día seleccionado en vista calendario móvil
   editCollab: null,     // id colaborador en edición
   editAct:    null,     // id actividad en edición
 };
@@ -60,8 +61,17 @@ function fmtDayLong(iso) {
 function fmtWeek(wid) {
   const mon = weekMonday(wid);
   const sun = new Date(mon); sun.setUTCDate(mon.getUTCDate() + 6);
-  const o = { day: 'numeric', month: 'short' };
-  return `${wid}  ·  ${mon.toLocaleDateString('es-ES', o)} – ${sun.toLocaleDateString('es-ES', o)}`;
+  const [my, mm, md] = mon.toISOString().slice(0, 10).split('-').map(Number);
+  const [sy, sm, sd] = sun.toISOString().slice(0, 10).split('-').map(Number);
+  const monStr = new Date(my, mm - 1, md).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' });
+  const sunStr = new Date(sy, sm - 1, sd).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' });
+  return `${monStr} – ${sunStr}`;
+}
+
+function calDefaultDay() {
+  const dates = weekDates(S.week);
+  const today = new Date().toISOString().slice(0, 10);
+  return dates.includes(today) ? today : dates[0];
 }
 
 function blockStatus(b) {
@@ -250,17 +260,22 @@ function renderCalendar() {
 
   const dates = weekDates(S.week);
   const slots = S.cfg.bloques_horarios;
+  const today = new Date().toISOString().slice(0, 10);
+
+  if (!dates.includes(S.calDay)) S.calDay = calDefaultDay();
 
   const byCell = {};
+  const byDay  = {};
   blocks.forEach(b => {
     const key = `${b.date}|${b.slot}`;
     (byCell[key] = byCell[key] || []).push(b);
+    (byDay[b.date] = byDay[b.date] || []).push(b);
   });
 
   const cont = el('agendaCalendar');
   cont.innerHTML = '';
 
-  // Leyenda de categorías
+  // ── Desktop: legend + 7-col grid ──────────────────────────
   const legend = document.createElement('div'); legend.className = 'cal-legend';
   S.cfg.categorias.forEach(c => {
     const item = document.createElement('span'); item.className = 'cal-legend-item';
@@ -271,29 +286,94 @@ function renderCalendar() {
 
   const wrap = document.createElement('div'); wrap.className = 'cal-wrap';
   const grid = document.createElement('div'); grid.className = 'cal-grid';
-
-  grid.append(document.createElement('div')); // esquina vacía
-
+  grid.append(document.createElement('div'));
   dates.forEach(d => {
     const cell = document.createElement('div'); cell.className = 'cal-header-cell';
     cell.textContent = fmtDay(d);
     grid.append(cell);
   });
-
   slots.forEach(slot => {
     const label = document.createElement('div'); label.className = 'cal-slot-label';
     label.textContent = slot;
     grid.append(label);
-
     dates.forEach(date => {
       const cell = document.createElement('div'); cell.className = 'cal-cell';
       (byCell[`${date}|${slot}`] || []).forEach(b => cell.append(buildCalBlock(b)));
       grid.append(cell);
     });
   });
-
   wrap.append(grid);
   cont.append(wrap);
+
+  // ── Mobile: day-picker strip ──────────────────────────────
+  const picker = document.createElement('div'); picker.className = 'cal-day-picker';
+  dates.forEach(date => {
+    const dayBlocks = byDay[date] || [];
+    const [, , dayNum] = date.split('-');
+    const dayName = new Date(date + 'T12:00').toLocaleDateString('es-ES', { weekday: 'short' });
+    const catColors = [...new Set(dayBlocks.map(b => catColor(b)))].slice(0, 3);
+
+    const btn = document.createElement('button');
+    btn.className = [
+      'cal-day-btn',
+      dayBlocks.length ? 'has-blocks' : '',
+      date === S.calDay ? 'active' : '',
+      date === today    ? 'today'  : '',
+    ].filter(Boolean).join(' ');
+
+    btn.innerHTML = `
+      <span class="cal-day-name-short">${dayName.replace('.', '')}</span>
+      <span class="cal-day-num">${Number(dayNum)}</span>
+      <span class="cal-day-dots">${catColors.map(c => `<span class="cal-day-dot" style="background:${c}"></span>`).join('')}</span>
+    `;
+    btn.addEventListener('click', () => { S.calDay = date; renderCalendar(); });
+    picker.append(btn);
+  });
+  cont.append(picker);
+
+  // ── Mobile: day slot view ─────────────────────────────────
+  const dayView = document.createElement('div'); dayView.className = 'cal-day-view';
+  const [y, m, d] = S.calDay.split('-').map(Number);
+  const dayTitle = new Date(y, m - 1, d).toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' });
+  const hdr = document.createElement('div'); hdr.className = 'cal-day-view-header'; hdr.textContent = dayTitle;
+  dayView.append(hdr);
+
+  slots.forEach(slot => {
+    const slotBlocks = byCell[`${S.calDay}|${slot}`] || [];
+    const row = document.createElement('div'); row.className = 'cal-day-view-slot';
+
+    const lbl = document.createElement('div'); lbl.className = 'cal-day-slot-label'; lbl.textContent = slot;
+    row.append(lbl);
+
+    const col = document.createElement('div'); col.className = 'cal-day-slot-blocks';
+    if (!slotBlocks.length) {
+      const e = document.createElement('div'); e.className = 'cal-day-slot-empty'; e.textContent = '—';
+      col.append(e);
+    } else {
+      slotBlocks.forEach(b => {
+        const status   = blockStatus(b);
+        const actNames = (b.actIds || []).map(id => S.acts[id]?.name).filter(Boolean).join(', ') || '—';
+        const names    = (b.collabIds || []).map(id => S.collabs[id]?.name).filter(Boolean).join(', ');
+        const color    = catColor(b);
+
+        const bEl = document.createElement('div');
+        bEl.className = `cal-day-block ${status}`;
+        bEl.innerHTML = `
+          <span class="cal-day-block-dot" style="background:${color}"></span>
+          <span class="cal-day-block-text">
+            <div class="cal-day-block-name">${b.priority ? '★ ' : ''}${actNames}</div>
+            <div class="cal-day-block-status">${statusLabel(status)}${names ? ' · ' + names : ''}</div>
+          </span>
+          <span class="cal-day-block-arrow">›</span>
+        `;
+        bEl.addEventListener('click', () => openBlockModal(b));
+        col.append(bEl);
+      });
+    }
+    row.append(col);
+    dayView.append(row);
+  });
+  cont.append(dayView);
 }
 
 function buildCalBlock(b) {
@@ -310,37 +390,36 @@ function buildCalBlock(b) {
 }
 
 function buildBlockCard(b) {
-  const status = blockStatus(b);
+  const status   = blockStatus(b);
   const actNames = (b.actIds || []).map(id => S.acts[id]?.name).filter(Boolean).join(', ') || '—';
-  const names = (b.collabIds || []).map(id => S.collabs[id]?.name).filter(Boolean).join(', ');
-  const isPend = status === 'pendiente';
+  const names    = (b.collabIds || []).map(id => S.collabs[id]?.name).filter(Boolean).join(', ');
+  const isPend   = status === 'pendiente';
+  const color    = catColor(b);
 
   const card = document.createElement('div');
   card.className = `block-card ${status}`;
   card.innerHTML = `
-    <div class="block-top">
-      <div class="block-info">
-        ${b.priority ? '<div class="priority-tag">★ PRIORITARIO</div>' : ''}
-        <div class="block-slot">${b.slot}</div>
-        <div class="block-acts">${actNames}</div>
-        <div class="block-meta">
-          <span class="badge ${statusBadge(status)}">${statusLabel(status)}</span>
-          &nbsp;${(b.collabIds || []).length}/${b.people} personas
-          ${names ? ` · ${names}` : ''}
-        </div>
-        ${b.notes ? `<div class="block-notes">"${b.notes}"</div>` : ''}
-      </div>
-      <div class="block-right">
-        <div class="block-actions">
-          <button class="btn btn-ghost btn-sm" data-ac="edit">Editar</button>
-          <button class="btn btn-danger btn-sm" data-ac="del">Eliminar</button>
-        </div>
-        ${isPend ? `<div class="block-actions">
-          <button class="btn btn-success btn-sm" data-ac="confirm">Confirmar</button>
-          <button class="btn btn-ghost btn-sm" data-ac="reject">Rechazar</button>
-        </div>` : ''}
-      </div>
+    <div class="block-header">
+      <div class="block-slot">${b.slot}</div>
+      ${b.priority ? '<div class="priority-tag">★ Prioritario</div>' : ''}
     </div>
+    <div class="block-acts">
+      <span class="cat-dot" style="background:${color}"></span>
+      <span>${actNames}</span>
+    </div>
+    <div class="block-meta">
+      <span class="badge ${statusBadge(status)}">${statusLabel(status)}</span>
+      <span>${(b.collabIds || []).length}/${b.people} personas${names ? ' · ' + names : ''}</span>
+    </div>
+    ${b.notes ? `<div class="block-notes">${b.notes}</div>` : ''}
+    <div class="block-actions">
+      <button class="btn btn-ghost btn-sm" data-ac="edit">Editar</button>
+      <button class="btn btn-danger btn-sm" data-ac="del">Eliminar</button>
+    </div>
+    ${isPend ? `<div class="block-actions mt-2">
+      <button class="btn btn-success btn-sm" data-ac="confirm">✓ Confirmar</button>
+      <button class="btn btn-ghost btn-sm" data-ac="reject">✕ Rechazar</button>
+    </div>` : ''}
   `;
 
   card.querySelector('[data-ac="edit"]').addEventListener('click', () => openBlockModal(b));
@@ -623,12 +702,12 @@ function setupListeners() {
   // Week nav
   el('prevWeek').addEventListener('click', () => {
     S.week = isoWeek(new Date(weekMonday(S.week).getTime() - 7 * 86400000 + 43200000));
-    S.filter = null;
+    S.filter = null; S.calDay = null;
     renderWeekHeader(); renderChips(); renderAgenda();
   });
   el('nextWeek').addEventListener('click', () => {
     S.week = isoWeek(new Date(weekMonday(S.week).getTime() + 7 * 86400000 + 43200000));
-    S.filter = null;
+    S.filter = null; S.calDay = null;
     renderWeekHeader(); renderChips(); renderAgenda();
   });
 
