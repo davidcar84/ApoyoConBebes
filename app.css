@@ -260,22 +260,34 @@ a { color: var(--blue); text-decoration: none; }
 /* Hide the native checkbox inside pills — the label IS the toggle */
 .check-group input[type=checkbox] { appearance: none; width: 0; height: 0; margin: 0; overflow: hidden; }
 
-/* Simple checkbox list — used in modals and collab form */
-.check-group-list,
-.modal .check-group { display: grid; grid-template-columns: 1fr 1fr; gap: 2px 8px; }
-.check-group-list label,
-.modal .check-group label {
-  border: none; background: transparent; border-radius: 0; padding: 6px 4px;
-  font-size: .88rem; font-weight: 400; min-height: auto; gap: 8px;
+/* Native checkbox list — panel form (2-col) */
+.check-group-list { display: grid; grid-template-columns: 1fr 1fr; gap: 2px 8px; }
+.check-group-list label {
+  display: flex; align-items: center; gap: 10px;
+  border: none; background: transparent; border-radius: 0; padding: 5px 2px;
+  font-size: .88rem; font-weight: 400; min-height: auto; cursor: pointer;
 }
-.check-group-list label:has(input:checked),
+.check-group-list label:has(input:checked) {
+  background: transparent; border: none; color: var(--blue); font-weight: 600;
+}
+
+/* Native checkbox list — inside modals (single column) */
+.modal .check-group { display: flex; flex-direction: column; gap: 2px; }
+.modal .check-group label {
+  display: flex; align-items: center; gap: 10px;
+  border: none; background: transparent; border-radius: 0; padding: 6px 0;
+  font-size: .88rem; font-weight: 400; min-height: auto; cursor: pointer; width: 100%;
+}
 .modal .check-group label:has(input:checked) {
   background: transparent; border: none; color: var(--blue); font-weight: 600;
 }
+
+/* Shared: restore square native checkbox for both contexts */
 .check-group-list input[type=checkbox],
 .modal .check-group input[type=checkbox] {
-  appearance: auto; -webkit-appearance: auto;
-  width: 16px; height: 16px; margin: 0; flex-shrink: 0;
+  appearance: checkbox; -webkit-appearance: checkbox;
+  width: 16px; height: 16px; min-width: 16px; min-height: 16px;
+  margin: 0; flex-shrink: 0; overflow: visible;
   accent-color: var(--blue);
 }
 
