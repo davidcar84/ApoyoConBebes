@@ -2,7 +2,8 @@ name: Sync Google Calendar
 
 on:
   schedule:
-    - cron: '0 11 * * *' # diario, 11:00 UTC (~6:00 AM Bogotá)
+    - cron: '0 11 * * *' # 6:00 AM Bogotá
+    - cron: '0 17 * * *' # 12:00 PM Bogotá
   workflow_dispatch:
 
 jobs:
