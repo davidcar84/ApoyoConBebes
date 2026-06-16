@@ -258,6 +258,11 @@ a { color: var(--blue); text-decoration: none; }
 }
 .check-group input[type=checkbox] { accent-color: var(--blue); }
 
+/* ── Compact check-group inside modals ── */
+.modal .check-group label {
+  padding: 5px 10px; font-size: .8rem; min-height: 32px; border-radius: 7px;
+}
+
 /* ── Inline checkbox ── */
 .check-inline { display: flex; align-items: center; gap: 10px; min-height: 44px; }
 .check-inline input { width: 20px; height: 20px; accent-color: var(--blue); flex-shrink: 0; }
