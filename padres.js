@@ -481,7 +481,7 @@ function openBlockModal(b = null) {
   `);
 
   checkGroup(el('bActs'),
-    Object.values(S.acts).map(a => ({ id: a.id, label: a.name })),
+    Object.values(S.acts).filter(a => !a.gcalImported).map(a => ({ id: a.id, label: a.name })),
     b?.actIds || []);
   checkGroup(el('bCollabs'),
     Object.values(S.collabs).map(c => ({ id: c.id, label: c.name })),
@@ -583,7 +583,7 @@ function renderCollabForm(c = null) {
   el('collabLink').value  = c ? collabUrl(c.id) : '';
   el('collabNotes').value = c?.notes || '';
   checkGroup(el('collabActsCheck'),
-    Object.values(S.acts).map(a => ({ id: a.id, label: a.name })),
+    Object.values(S.acts).filter(a => !a.gcalImported).map(a => ({ id: a.id, label: a.name })),
     c?.actIds || []);
   checkGroup(el('collabDaysCheck'),
     DAYS.map((l, i) => ({ id: String(i), label: l })),
@@ -633,7 +633,7 @@ function renderActForm(a = null) {
 
 function renderActs() {
   const list = el('actsList');
-  const as = Object.values(S.acts);
+  const as = Object.values(S.acts).filter(a => !a.gcalImported);
   if (!as.length) { list.innerHTML = '<div class="empty" style="margin-bottom:16px;">No hay actividades aún.</div>'; return; }
   list.innerHTML = '';
   as.forEach(a => {

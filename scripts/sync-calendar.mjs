@@ -155,11 +155,11 @@ async function main() {
     const category = categoryForSummary(name);
     let act = Object.values(acts).find(a => a.name.toLowerCase() === name.toLowerCase());
     if (!act) {
-      act = { id: uid(), name, category, people: 1, exp: false, instr: '' };
+      act = { id: uid(), name, category, people: 1, exp: false, instr: '', gcalImported: true };
       acts[act.id] = act;
       updates[`activities/${act.id}`] = act;
-    } else if (act.category !== category) {
-      act = { ...act, category };
+    } else if (act.category !== category || !act.gcalImported) {
+      act = { ...act, category, gcalImported: true };
       acts[act.id] = act;
       updates[`activities/${act.id}`] = act;
     }
