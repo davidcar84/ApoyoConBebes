@@ -460,6 +460,7 @@ function openBlockModal(b = null) {
       <div class="field"><label>Personas necesarias</label><select id="bPeople">${peopleOpts}</select></div>
       <div class="field">
         <label>Actividades</label>
+        <div id="bGcalActs"></div>
         <div id="bActs" class="check-group"></div>
       </div>
       <div class="field">
@@ -480,9 +481,16 @@ function openBlockModal(b = null) {
     </form>
   `);
 
-  checkGroup(el('bActs'),
-    Object.values(S.acts).filter(a => !a.gcalImported).map(a => ({ id: a.id, label: a.name })),
-    b?.actIds || []);
+  const gcalActNames = (b?.actIds || [])
+    .filter(id => S.acts[id]?.gcalImported)
+    .map(id => S.acts[id].name);
+  if (gcalActNames.length) {
+    el('bGcalActs').innerHTML =
+      `<div class="gcal-act-label">📅 ${gcalActNames.join(', ')}</div>`;
+  }
+  const manualActs = Object.values(S.acts).filter(a => !a.gcalImported);
+  checkGroup(el('bActs'), manualActs.map(a => ({ id: a.id, label: a.name })),
+    (b?.actIds || []).filter(id => !S.acts[id]?.gcalImported));
   checkGroup(el('bCollabs'),
     Object.values(S.collabs).map(c => ({ id: c.id, label: c.name })),
     b?.collabIds || []);
