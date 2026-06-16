@@ -6,7 +6,7 @@ body {
   background: #f0f7ff; color: #0f172a; line-height: 1.5; min-height: 100vh;
   -webkit-font-smoothing: antialiased;
 }
-button, input, select, textarea { font: inherit; -webkit-appearance: none; appearance: none; }
+button, input:not([type=checkbox]):not([type=radio]), select, textarea { font: inherit; -webkit-appearance: none; appearance: none; }
 a { color: var(--blue); text-decoration: none; }
 
 /* ── Design Tokens ── */
@@ -245,6 +245,7 @@ a { color: var(--blue); text-decoration: none; }
 .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 
 /* ── Checkbox group ── */
+/* Pill-style toggles (main forms outside modals) */
 .check-group { display: flex; flex-wrap: wrap; gap: 8px; }
 .check-group label {
   display: inline-flex; align-items: center; gap: 7px;
@@ -256,11 +257,22 @@ a { color: var(--blue); text-decoration: none; }
 .check-group label:has(input:checked) {
   border-color: var(--blue); background: var(--blue-mid); color: var(--blue);
 }
-.check-group input[type=checkbox] { accent-color: var(--blue); }
+/* Hide the native checkbox inside pills — the label IS the toggle */
+.check-group input[type=checkbox] { appearance: none; width: 0; height: 0; margin: 0; overflow: hidden; }
 
-/* ── Compact check-group inside modals ── */
+/* Simple checkbox list inside modals */
+.modal .check-group { display: grid; grid-template-columns: 1fr 1fr; gap: 2px 8px; }
 .modal .check-group label {
-  padding: 5px 10px; font-size: .8rem; min-height: 32px; border-radius: 7px;
+  border: none; background: transparent; border-radius: 0; padding: 6px 4px;
+  font-size: .88rem; font-weight: 400; min-height: auto; gap: 8px;
+}
+.modal .check-group label:has(input:checked) {
+  background: transparent; border: none; color: var(--blue); font-weight: 600;
+}
+.modal .check-group input[type=checkbox] {
+  appearance: auto; -webkit-appearance: auto;
+  width: 16px; height: 16px; margin: 0; flex-shrink: 0;
+  accent-color: var(--blue);
 }
 
 /* ── Inline checkbox ── */
