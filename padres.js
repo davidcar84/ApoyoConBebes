@@ -460,7 +460,6 @@ function openBlockModal(b = null) {
       <div class="field"><label>Personas necesarias</label><select id="bPeople">${peopleOpts}</select></div>
       <div class="field">
         <label>Actividades</label>
-        <div id="bGcalActs"></div>
         <div id="bActs" class="check-group"></div>
       </div>
       <div class="field">
@@ -481,16 +480,11 @@ function openBlockModal(b = null) {
     </form>
   `);
 
-  const gcalActNames = (b?.actIds || [])
-    .filter(id => S.acts[id]?.gcalImported)
-    .map(id => S.acts[id].name);
-  if (gcalActNames.length) {
-    el('bGcalActs').innerHTML =
-      `<div class="gcal-act-label">📅 ${gcalActNames.join(', ')}</div>`;
-  }
-  const manualActs = Object.values(S.acts).filter(a => !a.gcalImported);
-  checkGroup(el('bActs'), manualActs.map(a => ({ id: a.id, label: a.name })),
-    (b?.actIds || []).filter(id => !S.acts[id]?.gcalImported));
+  const allActsSorted = Object.values(S.acts)
+    .sort((x, y) => (x.gcalImported ? 1 : 0) - (y.gcalImported ? 1 : 0) || x.name.localeCompare(y.name));
+  checkGroup(el('bActs'),
+    allActsSorted.map(a => ({ id: a.id, label: a.gcalImported ? `${a.name} 📅` : a.name })),
+    b?.actIds || []);
   checkGroup(el('bCollabs'),
     Object.values(S.collabs).map(c => ({ id: c.id, label: c.name })),
     b?.collabIds || []);
@@ -505,10 +499,7 @@ function openBlockModal(b = null) {
       date:     el('bDate').value,
       slot:     el('bSlot').value,
       people:   Number(el('bPeople').value),
-      actIds:   [
-        ...(b?.actIds || []).filter(id => S.acts[id]?.gcalImported),
-        ...checked(el('bActs')),
-      ],
+      actIds:   checked(el('bActs')),
       collabIds:checked(el('bCollabs')),
       priority: el('bPriority').checked,
       notes:    el('bNotes').value.trim(),
